@@ -1,3 +1,5 @@
+import xvLogoUrl from '/xv-logo.png?url'
+
 // ── Data & Config ───────────────────────────────────────────
 const DEPARTMENTS = [
   'Media',
@@ -127,7 +129,7 @@ function renderForm() {
   return `
     <div class="hero">
       <div class="hero-icon xv-logo">
-        <img src="/xv-logo.png" alt="crossvertise" width="56" height="56" />
+        <img src="${xvLogoUrl}" alt="crossvertise" width="56" height="56" />
       </div>
       <h1>Teile deine Idee mit uns</h1>
       <p>Hilf uns, unsere Plattform weiterzuentwickeln. Jeder Vorschlag wird vom Product Team gepr\u00fcft.</p>
