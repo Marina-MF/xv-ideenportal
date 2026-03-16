@@ -1,5 +1,9 @@
 import xvLogoUrl from '/xv-logo.png?url'
 
+// ── Webhook Config ──────────────────────────────────────────
+// Paste your Power Automate HTTP trigger URL here:
+const WEBHOOK_URL = '';
+
 // ── Data & Config ───────────────────────────────────────────
 const DEPARTMENTS = [
   'Media',
@@ -434,6 +438,31 @@ function validateForm(form) {
   return isValid;
 }
 
+async function sendToWebhook(idea) {
+  if (!WEBHOOK_URL) {
+    console.warn('[Ideenportal] Kein WEBHOOK_URL konfiguriert – E-Mail wird nicht gesendet.');
+    return { ok: true, skipped: true };
+  }
+
+  try {
+    const response = await fetch(WEBHOOK_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(idea),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+
+    console.info('[Ideenportal] Webhook erfolgreich gesendet.');
+    return { ok: true };
+  } catch (err) {
+    console.error('[Ideenportal] Webhook-Fehler:', err);
+    return { ok: false, error: err.message };
+  }
+}
+
 async function handleSubmit(e) {
   e.preventDefault();
   const form = e.target;
@@ -447,28 +476,34 @@ async function handleSubmit(e) {
   // Build data object
   const idea = {
     id: `idea-${Date.now()}`,
-    eingereichtAm: new Date().toISOString(),
-    person: {
-      name: form.elements.name.value.trim(),
-      abteilung: form.elements.abteilung.value,
-    },
+    eingereichtAm: new Date().toLocaleString('de-DE', {
+      dateStyle: 'medium',
+      timeStyle: 'short',
+    }),
+    name: form.elements.name.value.trim(),
+    abteilung: form.elements.abteilung.value,
     ursprung: form.elements.ursprung.value,
     kategorie: form.elements.kategorie.value,
-    idee: {
-      titel: form.elements.titel.value.trim(),
-      beschreibung: form.elements.beschreibung.value.trim(),
-      problem: form.elements.problem.value.trim() || null,
-    },
-    prioritaet: form.elements.prioritaet.value || null,
-    dateiName: selectedFile ? selectedFile.name : null,
+    titel: form.elements.titel.value.trim(),
+    beschreibung: form.elements.beschreibung.value.trim(),
+    problem: form.elements.problem.value.trim() || '–',
+    prioritaet: form.elements.prioritaet.value || '–',
+    dateiName: selectedFile ? selectedFile.name : '–',
     status: 'Neu',
   };
 
-  // Simulate network delay
-  await new Promise(r => setTimeout(r, 800));
+  // Send to Power Automate webhook (email)
+  const result = await sendToWebhook(idea);
 
-  // Store (localStorage simulation)
+  // Also store in localStorage as backup
   storeIdea(idea);
+
+  if (!result.ok) {
+    btn.classList.remove('loading');
+    btn.disabled = false;
+    alert('Die Idee konnte leider nicht gesendet werden. Bitte versuche es erneut.');
+    return;
+  }
 
   // Switch to confirmation
   selectedFile = null;
