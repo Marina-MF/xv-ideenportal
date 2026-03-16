@@ -2,7 +2,7 @@ import xvLogoUrl from '/xv-logo.png?url'
 
 // ── Webhook Config ──────────────────────────────────────────
 // Paste your Power Automate HTTP trigger URL here:
-const WEBHOOK_URL = '';
+const WEBHOOK_URL = 'https://default70470a10c0d14c3ba249d43d39407f.d9.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/6360859b8c0e488f9edd59be4c435c56/triggers/manual/paths/invoke?api-version=1';
 
 // ── Data & Config ───────────────────────────────────────────
 const DEPARTMENTS = [
