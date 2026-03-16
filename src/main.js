@@ -1,8 +1,8 @@
 import xvLogoUrl from '/xv-logo.png?url'
 
-// ── Webhook Config ──────────────────────────────────────────
-// Paste your Power Automate HTTP trigger URL here:
-const WEBHOOK_URL = 'https://default70470a10c0d14c3ba249d43d39407f.d9.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/6360859b8c0e488f9edd59be4c435c56/triggers/manual/paths/invoke?api-version=1';
+// ── Formspree Config ────────────────────────────────────────
+// Paste your Formspree endpoint here (e.g. 'https://formspree.io/f/xAbCdEfG'):
+const FORMSPREE_URL = '';
 
 // ── Data & Config ───────────────────────────────────────────
 const DEPARTMENTS = [
@@ -438,27 +438,45 @@ function validateForm(form) {
   return isValid;
 }
 
-async function sendToWebhook(idea) {
-  if (!WEBHOOK_URL) {
-    console.warn('[Ideenportal] Kein WEBHOOK_URL konfiguriert – E-Mail wird nicht gesendet.');
+async function sendToFormspree(idea) {
+  if (!FORMSPREE_URL) {
+    console.warn('[Ideenportal] Kein FORMSPREE_URL konfiguriert – E-Mail wird nicht gesendet.');
     return { ok: true, skipped: true };
   }
 
+  // Format a readable email body for Formspree
+  const payload = {
+    _subject: `Neue Idee: ${idea.titel}`,
+    Name: idea.name,
+    Abteilung: idea.abteilung,
+    Quelle: idea.ursprung,
+    Bereich: idea.kategorie,
+    'Titel der Idee': idea.titel,
+    Beschreibung: idea.beschreibung,
+    'Problem / Kontext': idea.problem,
+    'Priorität': idea.prioritaet,
+    Dateianhang: idea.dateiName,
+    'Eingereicht am': idea.eingereichtAm,
+  };
+
   try {
-    const response = await fetch(WEBHOOK_URL, {
+    const response = await fetch(FORMSPREE_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(idea),
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+      },
+      body: JSON.stringify(payload),
     });
 
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}`);
     }
 
-    console.info('[Ideenportal] Webhook erfolgreich gesendet.');
+    console.info('[Ideenportal] Formspree erfolgreich gesendet.');
     return { ok: true };
   } catch (err) {
-    console.error('[Ideenportal] Webhook-Fehler:', err);
+    console.error('[Ideenportal] Formspree-Fehler:', err);
     return { ok: false, error: err.message };
   }
 }
@@ -492,8 +510,8 @@ async function handleSubmit(e) {
     status: 'Neu',
   };
 
-  // Send to Power Automate webhook (email)
-  const result = await sendToWebhook(idea);
+  // Send to Formspree (email)
+  const result = await sendToFormspree(idea);
 
   // Also store in localStorage as backup
   storeIdea(idea);
