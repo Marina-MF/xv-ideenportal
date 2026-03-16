@@ -1,8 +1,7 @@
 import xvLogoUrl from '/xv-logo.png?url'
 
 // ── Formspree Config ────────────────────────────────────────
-// Paste your Formspree endpoint here (e.g. 'https://formspree.io/f/xAbCdEfG'):
-const FORMSPREE_URL = '';
+const FORMSPREE_URL = 'https://formspree.io/f/xjgaaykr';
 
 // ── Data & Config ───────────────────────────────────────────
 const DEPARTMENTS = [
@@ -444,7 +443,6 @@ async function sendToFormspree(idea) {
     return { ok: true, skipped: true };
   }
 
-  // Format a readable email body for Formspree
   const payload = {
     _subject: `Neue Idee: ${idea.titel}`,
     Name: idea.name,
